@@ -1,0 +1,29 @@
+name: "Create release"
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create file name by tag name
+        id: get_version
+        run: echo "FILENAME=skylands-${GITHUB_REF/refs\/tags\//}.zip" >> $GITHUB_ENV
+
+      - uses: actions/checkout@master
+      - name: Delete unused directories since exclusions not working in zip release with directories
+        run: rm -r .git && rm -r .github
+
+      - name: Zip Release
+        uses: TheDoctor0/zip-release@0.6.2
+        with:
+          exclusions: '.gitignore'
+          filename: ${{ env.FILENAME }}
+      - name: Upload Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: ${{ env.FILENAME }}
+          token: ${{ secrets.GITHUB_TOKEN }}
